@@ -8,7 +8,7 @@ namespace UserApi.Repository
         
         public Context(IMongoClient mongoClient) 
         {
-            _database = mongoClient.GetDatabase("StajDb");
+            _database = mongoClient.GetDatabase("UserAPI");
         }
 
         
