@@ -40,7 +40,7 @@ namespace UserApi
             
             services.AddSingleton<IAuthorizeSettings>(sp => sp.GetRequiredService<IOptions<AuthorizeSettings>>().Value);
             
-            services.AddSingleton(x => new Context(new MongoClient()));
+            services.AddSingleton(x => new DBContext(new MongoClient()));
             
             services.AddSingleton<DocumentService>();
             
@@ -81,7 +81,19 @@ namespace UserApi
             services.AddMvc();
 
             services.AddControllers();
-            
+
+            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: MyAllowSpecificOrigins,
+                                  policy =>
+                                  {
+                                      policy.WithOrigins("http://localhost:4200/",
+                                                          "http://localhost:4200");
+                                  });
+            });
+
+            //services.AddRazorPages();
         }
         
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -99,8 +111,12 @@ namespace UserApi
 
             app.UseHttpsRedirection();
 
+            app.UseStaticFiles();
+
             app.UseRouting();
-            
+
+            app.UseCors();
+
             app.UseOpenApi();    
                                  
             app.UseSwaggerUi3();
@@ -114,6 +130,7 @@ namespace UserApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                //endpoints.MapRazorPages();
             });
             
             app.Run(async (context) =>

@@ -4,10 +4,10 @@ using UserApi.Settings;
 
 namespace UserApi.Services
 {
-    public class UserService : BaseRepository<User>
+    public class UserService : BaseServiceRepository<User>
     {
         
-        public UserService(Context context, IUserDatabaseSettings settings) : base(context, settings.CollectionName)
+        public UserService(DBContext context, IUserDatabaseSettings settings) : base(context, settings.CollectionName)
         {
         }
     }

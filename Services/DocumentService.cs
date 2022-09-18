@@ -4,9 +4,9 @@ using UserApi.Repository;
 
 namespace UserApi.Services
 {
-    public class DocumentService : BaseRepository<DocumentsModel>
+    public class DocumentService : BaseServiceRepository<DocumentsModel>
     {
-        public DocumentService(Context context, string collectionName = "Document") : base(context, collectionName)
+        public DocumentService(DBContext context, string collectionName = "Document") : base(context, collectionName)
         {
         }
     }
