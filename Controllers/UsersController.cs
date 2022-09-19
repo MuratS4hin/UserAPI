@@ -24,7 +24,8 @@ namespace UserApi.Controllers
         [HttpGet]
         public List<User> Get()
         {
-            return _userService.Find();
+            var response = _userService.Find();
+            return response;
         }
         
         [HttpGet("{id:Guid}")]

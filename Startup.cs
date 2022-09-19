@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using NSwag;
 using UserApi.Middleware;
+using UserApi.Middlewares;
 using UserApi.Models;
 using UserApi.Repository;
 using UserApi.Services;
@@ -27,23 +28,23 @@ namespace UserApi
         {
             Configuration = configuration;
         }
-        
+
         public IConfiguration Configuration { get; }
-        
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<UserDatabaseSettings>(Configuration.GetSection(nameof(UserDatabaseSettings)));
-            
+
             services.AddSingleton<IUserDatabaseSettings>(sp => sp.GetRequiredService<IOptions<UserDatabaseSettings>>().Value);
-            
+
             services.Configure<AuthorizeSettings>(Configuration.GetSection(nameof(AuthorizeSettings)));
-            
+
             services.AddSingleton<IAuthorizeSettings>(sp => sp.GetRequiredService<IOptions<AuthorizeSettings>>().Value);
-            
+
             services.AddSingleton(x => new DBContext(new MongoClient()));
-            
+
             services.AddSingleton<DocumentService>();
-            
+
             services.AddSingleton<UserService>();
 
             services.AddSingleton<MimeTypes>();
@@ -51,7 +52,7 @@ namespace UserApi
             services.AddTransient<IValidator<RequestedUser>, RequestedUserValidator>();
 
             services
-                .AddMvc(options => {options.EnableEndpointRouting = false; })
+                .AddMvc(options => { options.EnableEndpointRouting = false; })
                 .AddFluentValidation(configuration => configuration.RegisterValidatorsFromAssemblyContaining<Startup>());
 
             services.AddSwaggerDocument(c =>
@@ -63,39 +64,34 @@ namespace UserApi
                     Type = OpenApiSecuritySchemeType.ApiKey
                 }));
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) 
-                .AddJwtBearer(options =>    
-                {    
-                    options.TokenValidationParameters = new TokenValidationParameters    
-                    {    
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
                         ValidateIssuer = true,
                         ValidateAudience = true,
                         ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true, 
+                        ValidateIssuerSigningKey = true,
                         ValidIssuer = Configuration["AuthorizeSettings:Issuer"],
                         ValidAudience = Configuration["AuthorizeSettings:Audience"],
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["AuthorizeSettings:Key"]))
                     };
                 });
-            
+
             services.AddMvc();
 
             services.AddControllers();
-
-            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
             services.AddCors(options =>
             {
-                options.AddPolicy(name: MyAllowSpecificOrigins,
-                                  policy =>
-                                  {
-                                      policy.WithOrigins("http://localhost:4200/",
-                                                          "http://localhost:4200");
-                                  });
+                options.AddDefaultPolicy(
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:4200").AllowAnyHeader().WithMethods("GET", "PUT", "POST", "DELETE", "UPDATE", "OPTIONS").AllowCredentials();
+                    });
             });
-
-            //services.AddRazorPages();
         }
-        
+
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -111,32 +107,35 @@ namespace UserApi
 
             app.UseHttpsRedirection();
 
-            app.UseStaticFiles();
-
             app.UseRouting();
 
-            app.UseCors();
+            app.UseCors(builder =>
+                builder.WithOrigins("http://localhost:4200")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials());
 
-            app.UseOpenApi();    
-                                 
+            app.UseOpenApi();
+
             app.UseSwaggerUi3();
 
             app.UseAuthentication();
-            
+
             app.UseAuthorization();
 
             app.UseMvc();
-            
+
+            app.UseOptions();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                //endpoints.MapRazorPages();
             });
-            
+
             app.Run(async (context) =>
             {
                 await context.Response.WriteAsync("Could Not Find Anything");
-            }) ;
+            });
         }
     }
 }
