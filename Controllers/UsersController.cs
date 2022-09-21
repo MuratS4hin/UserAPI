@@ -43,6 +43,14 @@ namespace UserApi.Controllers
             return _userService.Create(requestedUser.SetRequestedUserToUser());
         }
 
+        [HttpPost("Login")]
+        public ActionResult<User> Login([FromBody] UserLoginModel requestedUser)
+        {
+            var user = _userService.FindById(x => x.Email == requestedUser.Email);
+            if (user == null || user.Password != requestedUser.Password) throw new NotFound();
+            return user;
+        }
+
         [HttpPost("Many")]
         public List<RequestedUser> CreateMany([FromBody]List<RequestedUser> requestedUser)
         {

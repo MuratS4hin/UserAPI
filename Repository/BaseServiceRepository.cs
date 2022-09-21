@@ -52,5 +52,10 @@ namespace UserApi.Repository
             var filter = Builders<T>.Filter.Where(expression);
             return _collection.FindOneAndDelete(filter);
         }
+
+        public T Login(Expression<Func<T, bool>> expression)
+        {
+            return _collection.Find(expression).FirstOrDefault();
+        }
     }
 }
