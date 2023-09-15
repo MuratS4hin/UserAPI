@@ -33,13 +33,19 @@ namespace UserApi
 
         public void ConfigureServices(IServiceCollection services)
         {
+            #region Settings Defined
             services.Configure<UserDatabaseSettings>(Configuration.GetSection(nameof(UserDatabaseSettings)));
 
             services.AddSingleton<IUserDatabaseSettings>(sp => sp.GetRequiredService<IOptions<UserDatabaseSettings>>().Value);
 
+            services.Configure<DocumentDatabaseSettings>(Configuration.GetSection(nameof(DocumentDatabaseSettings)));
+
+            services.AddSingleton<IDocumentDatabaseSettings>(sp => sp.GetRequiredService<IOptions<DocumentDatabaseSettings>>().Value);
+
             services.Configure<AuthorizeSettings>(Configuration.GetSection(nameof(AuthorizeSettings)));
 
             services.AddSingleton<IAuthorizeSettings>(sp => sp.GetRequiredService<IOptions<AuthorizeSettings>>().Value);
+            #endregion
 
             services.AddSingleton(x => new DBContext(new MongoClient()));
 

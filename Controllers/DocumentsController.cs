@@ -47,13 +47,13 @@ namespace UserApi.Controllers
 
 
         
-        [AllowAnonymous]
-        [HttpPost("Login")]
-        public string Login([FromForm]string username, string password)
-        {
-            var user = IfLoginSuccessfulGetUser(username, password);
-            return CreateJwtToken(user);
-        }
+        //[AllowAnonymous]
+        //[HttpPost("Login")]
+        //public string Login([FromForm]string username, string password)
+        //{
+        //    var user = IfLoginSuccessfulGetUser(username, password);
+        //    return CreateJwtToken(user);
+        //}
 
         [HttpGet]
         public async Task<List<DocumentsModel>> Get()
