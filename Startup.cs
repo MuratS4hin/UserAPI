@@ -10,8 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
-using NSwag;
 using UserApi.Middleware;
 using UserApi.Middlewares;
 using UserApi.Models;
@@ -55,15 +55,6 @@ namespace UserApi
                 .AddMvc(options => { options.EnableEndpointRouting = false; })
                 .AddFluentValidation(configuration => configuration.RegisterValidatorsFromAssemblyContaining<Startup>());
 
-            services.AddSwaggerDocument(c =>
-                c.AddSecurity("Bearer", new OpenApiSecurityScheme
-                {
-                    In = OpenApiSecurityApiKeyLocation.Header,
-                    Description = "Please insert JWT with Bearer into field",
-                    Name = "Authorization",
-                    Type = OpenApiSecuritySchemeType.ApiKey
-                }));
-
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -78,6 +69,37 @@ namespace UserApi
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["AuthorizeSettings:Key"]))
                     };
                 });
+
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
+
+                // Define the Bearer token security scheme
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Please insert JWT token by writing Bearer in front (E.g. Bearer eytxckvds...)",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+
+                // Add Bearer token authentication requirement for methods that require authorization
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] { }
+                    }
+                });
+            });
 
             services.AddMvc();
 
@@ -115,9 +137,12 @@ namespace UserApi
                       .AllowAnyMethod()
                       .AllowCredentials());
 
-            app.UseOpenApi();
+            app.UseSwagger();
 
-            app.UseSwaggerUi3();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "APIs");
+            });
 
             app.UseAuthentication();
 

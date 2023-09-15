@@ -1,11 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using UserApi.Middleware;
 using UserApi.Models;
 using UserApi.Services;
-
+using System.IdentityModel.Tokens.Jwt;
+using System.IO;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using UserApi.Settings;
+using System.Text.Json;
 
 namespace UserApi.Controllers
 {
@@ -14,10 +25,12 @@ namespace UserApi.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserService _userService;
+        private readonly IAuthorizeSettings _authorizeSettings;
 
-        public UsersController(UserService userService)
+        public UsersController(UserService userService, IAuthorizeSettings authorizeSettings)
         {
             _userService = userService;
+            _authorizeSettings = authorizeSettings;
         }
         
 
@@ -44,11 +57,11 @@ namespace UserApi.Controllers
         }
 
         [HttpPost("Login")]
-        public ActionResult<User> Login([FromBody] UserLoginModel requestedUser)
+        public ActionResult<string> Login([FromBody] UserLoginModel requestedUser)
         {
-            var user = _userService.FindById(x => x.Email == requestedUser.Email);
-            if (user == null || user.Password != requestedUser.Password) throw new NotFound();
-            return user;
+            var user = IfLoginSuccessfulGetUser(requestedUser.Email, requestedUser.Password);
+            var token = CreateJwtToken(user);
+            return JsonSerializer.Serialize(token);
         }
 
         [HttpPost("Many")]
@@ -90,6 +103,37 @@ namespace UserApi.Controllers
         public User Delete(Guid id)
         {
             return _userService.Delete(user => user.Id == id);
+        }
+
+
+
+        private User IfLoginSuccessfulGetUser(string email, string password)
+        {
+            foreach (var user in _userService.Find().Where(user => user.Email == email && user.Password == password))
+            {
+                return user;
+            }
+            throw new NotFound();
+        }
+
+        private string CreateJwtToken(User user)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authorizeSettings.Key));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(3),
+                Issuer = _authorizeSettings.Issuer,
+                Audience = _authorizeSettings.Audience,
+                SigningCredentials = credentials
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
     }
 }

@@ -75,13 +75,13 @@ namespace UserApi.Controllers
             _logger.LogInformation(MyLogEvents.GetItem,"Download the item {Id} at {RequestTime}", documentId, DateTime.Now);
             return "Done";
         }
-        
+
         [HttpPost("Upload")]
-        public async Task<string> UploadFile(RequestedDocumentsModel requestedDocument, [FromForm]Guid userId)
+        public async Task<string> UploadFile([FromForm] RequestedDocumentsModel requestedDocument)
         {
-            var user = GetUserById(userId);
-            DoesUserExist(user,userId);
-            DoesAuthorizedTo(user,userId,"Upload");
+            var user = GetUserById(requestedDocument.Id);
+            DoesUserExist(user, requestedDocument.Id);
+            DoesAuthorizedTo(user, requestedDocument.Id, "Upload");
             DoesUploadingDocumentEmpty(requestedDocument);
             new FileExtensionContentTypeProvider().TryGetContentType(requestedDocument.Files.FileName ,out string contentType);
             DoesMimeTypeSupported(contentType);
@@ -111,11 +111,11 @@ namespace UserApi.Controllers
             return "\\Updated\\" + objFile.Files.FileName;
 
         }
-        
-        
-        
-        
-        
+
+
+
+
+
         private User GetUserById(Guid id)
         {
             _logger.LogInformation(MyLogEvents.GetItem,"User ({id}) has successfully found", id);

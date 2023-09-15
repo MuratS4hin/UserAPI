@@ -6,6 +6,8 @@ namespace UserApi.Models
 {
     public class RequestedDocumentsModel
     {
+        public Guid Id { get; set; }
+
         public IFormFile Files { get; set; }
         
         public DocumentsModel SetDocumentModel(User user)
