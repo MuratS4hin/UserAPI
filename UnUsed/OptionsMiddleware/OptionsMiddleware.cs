@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 
-namespace UserApi.Middlewares
+namespace UserApi.Middleware.OptionsMiddleware
 {
     public class OptionsMiddleware
     {
@@ -32,14 +32,6 @@ namespace UserApi.Middlewares
             }
 
             return _next.Invoke(context);
-        }
-    }
-
-    public static class OptionsMiddlewareExtensions
-    {
-        public static IApplicationBuilder UseOptions(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<OptionsMiddleware>();
         }
     }
 }

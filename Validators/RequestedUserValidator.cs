@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using FluentValidation;
-using UserApi.Middleware;
+using UserApi.Middleware.ExceptionMiddleware;
 using UserApi.Models;
 using UserApi.Services;
 

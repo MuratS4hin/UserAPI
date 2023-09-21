@@ -19,8 +19,5 @@ namespace UserApi.Models
                 errorCode = ErrorCode
             });
         }
-        
-        
-        
     }
 }

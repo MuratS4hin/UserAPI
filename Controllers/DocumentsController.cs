@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using UserApi.Middleware;
+using UserApi.Middleware.ExceptionMiddleware;
 using UserApi.Models;
 using UserApi.Services;
 using UserApi.Settings;
@@ -42,18 +42,6 @@ namespace UserApi.Controllers
             _uploadPath = "C:/Users/sahmu/OneDrive/Masaüstü/OKUL/STAJ/Tesojer/C#/1-STAJ" + "\\Upload\\";
             _downloadPath = "C:/Users/sahmu/OneDrive/Masaüstü/OKUL/STAJ/Tesojer/C#/1-STAJ" + "\\Download\\";
         }
-
-        
-
-
-        
-        //[AllowAnonymous]
-        //[HttpPost("Login")]
-        //public string Login([FromForm]string username, string password)
-        //{
-        //    var user = IfLoginSuccessfulGetUser(username, password);
-        //    return CreateJwtToken(user);
-        //}
 
         [HttpGet]
         public async Task<List<DocumentsModel>> Get()
@@ -111,10 +99,6 @@ namespace UserApi.Controllers
             return "\\Updated\\" + objFile.Files.FileName;
 
         }
-
-
-
-
 
         private User GetUserById(Guid id)
         {
@@ -201,19 +185,3 @@ namespace UserApi.Controllers
         }
     }
 }
-
-/*[AllowAnonymous]
-        [HttpPost]
-        public string Login2(string name, string password)
-        {
-            IfLoginSuccessfulGetUser(name, password);
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authorizeSettings.Key));    
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken(
-                _authorizeSettings.Issuer,    
-                _authorizeSettings.Audience,
-                claims: null,    
-                expires: DateTime.Now.AddMinutes(120),    
-                signingCredentials: credentials);
-            return new JwtSecurityTokenHandler().WriteToken(token);  
-        }*/
